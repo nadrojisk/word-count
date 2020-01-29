@@ -5,9 +5,14 @@
 #include <string.h>
 #include <stdlib.h>
 
+// #define DEBUG
+
 char *read_file(char const *filename);
-void send_file(char *buffer, int fd[2]);
-void process_file(int fd[2]);
+void send_pipe(char *buffer, int *fd);
+void process_file(int *fd1, int *fd2);
+char *read_pipe(int fd[]);
+
+int count(char *buffer);
 
 int main(int argc, char const *argv[])
 {
@@ -18,9 +23,15 @@ int main(int argc, char const *argv[])
     }
 
     pid_t pid;
-    int fd[2];
+    int fd1[2];
+    int fd2[2];
 
-    if (pipe(fd) == -1)
+    if (pipe(fd1) == -1)
+    {
+        fprintf(stderr, "Pipe Failed");
+        return 1;
+    }
+    if (pipe(fd2) == -1)
     {
         fprintf(stderr, "Pipe Failed");
         return 1;
@@ -36,16 +47,34 @@ int main(int argc, char const *argv[])
 
     if (pid > 0)
     { // parent
+
+#ifdef DEBUG
+        printf("%s\n", "Starting Parent...");
+#endif
+
         char *lp_buffer = read_file(argv[1]);
-        // printf("%s\n", lp_buffer);
-        send_file(lp_buffer, fd);
+        send_pipe(lp_buffer, fd1);
+        wait(NULL); // WAIT FOR CHILD
+
+#ifdef DEBUG
+        printf("Resuming Parent...\n");
+#endif
+
+        printf("Number of Words: %s\n", read_pipe(fd2));
+
         free(lp_buffer);
     }
 
     else
     {
         // child
-        process_file(fd);
+#ifdef DEBUG
+        printf("\n\n%s\n", "Starting Child...");
+#endif
+        process_file(fd1, fd2);
+#ifdef DEBUG
+        printf("Ending Child...\n\n\n");
+#endif
     }
 
     return 0;
@@ -69,22 +98,51 @@ char *read_file(char const *filename)
     return lp_buffer;
 }
 
-void send_file(char *buffer, int fd[])
+void send_pipe(char *buffer, int *fd)
 {
     close(fd[0]);
-
+#ifdef DEBUG
+    printf("sending: %s\n", buffer);
+#endif
     write(fd[1], buffer, strlen(buffer));
 
     close(fd[1]);
 }
 
-void process_file(int fd[])
+char *read_pipe(int fd[])
 {
+
     char *lp_buffer = malloc(sizeof(lp_buffer) * 2048);
     close(fd[1]);
 
     read(fd[0], lp_buffer, 2048);
-    printf("child read:\n%s\n", lp_buffer);
-
+#ifdef DEBUG
+    printf("received: %s\n", lp_buffer);
+#endif
     close(fd[0]);
+
+    return lp_buffer;
+}
+
+void process_file(int *fd1, int *fd2)
+{
+    char *lp_buffer = read_pipe(fd1);
+    int counter = count(lp_buffer);
+
+    char *str_int;
+    sprintf(str_int, "%d", counter);
+    send_pipe(str_int, fd2);
+}
+
+int count(char *buffer)
+{
+    int counter = 0;
+    char *pch = strtok(buffer, " ");
+
+    while (pch != NULL)
+    {
+        counter++;
+        pch = strtok(NULL, " \n");
+    }
+    return counter;
 }
