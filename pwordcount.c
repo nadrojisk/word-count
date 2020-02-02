@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 #define MAX_BUFFER 2048
 //#define DEBUG
@@ -18,8 +19,9 @@ int main(int argc, char const *argv[])
 {	
 	// print usuage for file
 	if (argc != 2)
-	{
-		printf("%s\n", "Usage: ./driver filename");
+	{	
+		printf("Please enter a file name.\n");
+		printf("%s\n", "Usage: ./pwordcount filename");
 		return 1;
 	}
 	
@@ -57,6 +59,9 @@ int main(int argc, char const *argv[])
 		#endif
 
 		char *lp_buffer = read_file(argv[1]);
+
+		printf("Process 1 starts sending data to Process 2 ...\n");
+
 		send_pipe(lp_buffer, fd1);
 
 		wait(NULL); // WAIT FOR CHILD
@@ -66,8 +71,8 @@ int main(int argc, char const *argv[])
 			printf("Resuming Parent...\n");
 		#endif
 
-		printf("Number of Words: %s\n", read_pipe(fd2));
-
+		printf("Process 1: The total number of words is %s.\n", read_pipe(fd2));
+		
 		free(lp_buffer);
 	}
 
@@ -102,7 +107,8 @@ char *read_file(char const *filename)
 	rewind(pFile);
 
 	char *lp_buffer = malloc(sizeof(lp_buffer) * lSize);
-
+	
+	printf("Process 1 is reading file \"%s\" now ...\n", filename);
 	fread(lp_buffer, 1, lSize, pFile);
 
 	return lp_buffer;
@@ -161,11 +167,17 @@ void process_file(int *fd1, int *fd2)
 	// number back through pipe to parent
 	
 	char *lp_buffer = read_pipe(fd1);
+	
+	printf("Process 2 finishes receiving data from Process 1 ...\n");
+	printf("Process 2 is counting words now ...\n");
+
 	int counter = count(lp_buffer);
 	free(lp_buffer);
 	#ifdef DEBUG
 		printf("Number of words: %d\n", counter);
 	#endif
+	
+	printf("Process 2 is sending the result back to Process 1 ...\n");
 
 	char *str_int = malloc(sizeof(str_int) * sizeof(int));
 
