@@ -1,3 +1,14 @@
+/* pwordcount
+ *
+ * Takes in a filename through the command line and counts the number
+ * of words in the file.
+ *
+ * Only can read files of 2048 bytes or less
+ *
+ * Author: Jordan Sosnowski
+ * Date: 2.5.20
+ */
+
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -8,6 +19,7 @@
 #define MAX_BUFFER 2048
 //#define DEBUG
 
+
 char *read_file(char const *filename);
 void send_pipe(char *buffer, int *fd);
 void process_file(int *fd1, int *fd2);
@@ -17,6 +29,15 @@ int check_file(char const *filename);
 
 int main(int argc, char const *argv[])
 {	
+	/* Takes in a filename through the command line
+	 * sends file contents to child process who
+	 * couts the number of words are in the file.
+	 * Child then sends the number of words back to the
+	 * parent who then prints the number of words to standard
+	 * out.
+	 */
+
+
 	// print usuage for file
 	if (argc != 2)
 	{	
@@ -115,6 +136,9 @@ char *read_file(char const *filename)
 }
 
 int check_file(char const *filename){
+	// ensure file passed is a text file
+	// uses unix "file" command to check
+	
 	FILE *fp;
 
 	char *command = malloc(sizeof(command) * MAX_BUFFER);
@@ -147,7 +171,7 @@ void send_pipe(char *buffer, int *fd)
 
 char *read_pipe(int fd[])
 {
-	// read information from provided pipe
+	// read data from provided pipe
 	
 	char *lp_buffer = malloc(sizeof(lp_buffer) * MAX_BUFFER);
 	close(fd[1]);
@@ -173,6 +197,7 @@ void process_file(int *fd1, int *fd2)
 
 	int counter = count(lp_buffer);
 	free(lp_buffer);
+	
 	#ifdef DEBUG
 		printf("Number of words: %d\n", counter);
 	#endif
@@ -188,7 +213,7 @@ void process_file(int *fd1, int *fd2)
 
 int count(char *buffer)
 {
-	// count number of words in buffer
+	// count number of words in buffer using a delim of " "
 	
 	int counter = 0;
 	char *pch = strtok(buffer, " ");
