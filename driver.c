@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 #define MAX_BUFFER 2048
 //#define DEBUG
