@@ -62,6 +62,12 @@ int main(int argc, char const *argv[])
 		return 1;
 	}
 	
+	// check and ensure passed file is a text file	
+	if (check_file(argv[1])){
+		printf("Error: Provided file is not a text file. Quiting application\n");
+		exit(1);
+	}
+
 	// fork running process
 	pid = fork();
 
@@ -115,10 +121,6 @@ int main(int argc, char const *argv[])
 char *read_file(char const *filename)
 {
 	// read provided file and return contents
-	if (check_file(filename)){
-		printf("Error: Provided file is not a text file. Quiting application\n");
-		exit(1);
-	}	
 	FILE *pFile;
 	pFile = fopen(filename, "r");
 
@@ -153,7 +155,7 @@ int check_file(char const *filename){
 	#endif
 
 	char *tok = strtok(path, "/");
-	return strcmp("text", tok);	
+	return strcmp("text", tok) && strcmp("inode", tok);	
 }
 
 void send_pipe(char *buffer, int *fd)
