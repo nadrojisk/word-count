@@ -42,7 +42,7 @@ int main(int argc, char const *argv[])
 	if (argc != 2)
 	{	
 		printf("Please enter a file name.\n");
-		printf("%s\n", "Usage: ./pwordcount filename");
+		printf("%s\n", "Usage: ./pwordcount <file_name>");
 		return 1;
 	}
 	
@@ -218,12 +218,15 @@ int count(char *buffer)
 	// count number of words in buffer using a delim of " "
 	
 	int counter = 0;
-	char *pch = strtok(buffer, " ");
+	char *pch = strtok(buffer, " \n\r");
 
 	while (pch != NULL)
 	{
+		#ifdef DEBUG
+			printf("Current token: %s\n", pch);
+		#endif
 		counter++;
-		pch = strtok(NULL, " \n");
+		pch = strtok(NULL, " \n\r");
 	}
 	return counter;
 }
