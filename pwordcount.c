@@ -61,7 +61,10 @@ int main(int argc, char const *argv[])
 		fprintf(stderr, "Pipe Failed");
 		return 1;
 	}
-	
+	if (fopen(argv[1], "r") == NULL){
+		printf("Error: Provided file does not exist or cannot be opened.\n");
+		exit(1);
+	}
 	// check and ensure passed file is a text file	
 	if (check_file(argv[1])){
 		printf("Error: Provided file is not a text file. Quiting application\n");
