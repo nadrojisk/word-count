@@ -1,4 +1,4 @@
-# WordCount
+# word-count
 
 ## Purpose
 
